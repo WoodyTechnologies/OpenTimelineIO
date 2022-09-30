@@ -4,6 +4,7 @@
 #include "opentimelineio/typeRegistry.h"
 
 #include "anyDictionary.h"
+#include "opentimelineio/audioLevel.h"
 #include "opentimelineio/clip.h"
 #include "opentimelineio/composable.h"
 #include "opentimelineio/composition.h"
