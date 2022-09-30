@@ -6,6 +6,7 @@
 """User facing classes."""
 
 from .. _otio import (
+    AudioLevel,
     Box2d,
     Clip,
     Effect,
@@ -60,6 +61,7 @@ def timeline_from_clips(clips):
     return Timeline(tracks=[trck])
 
 __all__ = [
+    'AudioLevel',
     'Box2d',
     'Clip',
     'Effect',

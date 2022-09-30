@@ -6,6 +6,7 @@
 #include <pybind11/stl.h>
 #include "otio_errorStatusHandler.h"
 
+#include "opentimelineio/audioLevel.h"
 #include "opentimelineio/clip.h"
 #include "opentimelineio/composable.h"
 #include "opentimelineio/composition.h"
@@ -659,6 +660,15 @@ static void define_effects(py::module m) {
              "effect_name"_a = std::string(),
              py::arg_v("metadata"_a = py::none()))
         .def_property("effect_name", &Effect::effect_name, &Effect::set_effect_name);
+
+    py::class_<AudioLevel, Effect, managing_ptr<AudioLevel>>(m, "AudioLevel", py::dynamic_attr(), "Managing audioLevel/audio gain of a clip.")
+        .def(py::init([](std::string name,
+                         std::string effect_name,
+                         py::object metadata) {
+                          return new AudioLevel(name, effect_name, py_to_any_dictionary(metadata)); }),
+             py::arg_v("name"_a = std::string()),
+             "effect_name"_a = std::string(),
+             py::arg_v("metadata"_a = py::none()));
 
     py::class_<TimeEffect, Effect, managing_ptr<TimeEffect>>(m, "TimeEffect", py::dynamic_attr(), "Base class for all effects that alter the timing of an item.")
         .def(py::init([](std::string name,
