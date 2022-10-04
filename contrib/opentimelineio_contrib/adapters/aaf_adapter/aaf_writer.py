@@ -436,7 +436,7 @@ class _TrackTranscriber:
         is_time_warp = False
         by_pass = int(0)
         number_inputs = int(1)
-        operation_category = "0d010102-0101-0100-060e-2b3404010101"
+        operation_category = "OperationCategory_Effect"
         data_def_name = "Sound"
         data_def = self.aaf_file.dictionary.lookup_datadef(str(data_def_name))
         description = ""
