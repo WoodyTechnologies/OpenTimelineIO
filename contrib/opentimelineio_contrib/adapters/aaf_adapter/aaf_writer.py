@@ -416,18 +416,37 @@ class _TrackTranscriber:
         pointlist = otio_effect.metadata["keyframes"]
 
         points = []
+        
+        def linear_audio_map(value):
+            if value == "MinusInfinity":
+                return 2^29
+            if value == 4 :
+                return 0
+            # dbVu min max
+            dbMax = 4
+            dbMin = -100
+            dbSpan = dbMax - dbMin
+            rightMax = 2^29
+            rightMin = 0
+            rightSpan = rightMax - rightMin
+
+            # Convert the left range into a 0-1 range (float)
+            valueScaled = float(value - dbMin) / float(dbSpan)
+
+            # Convert the 0-1 range into a value in the right range.
+            return (valueScaled * rightMax) // 1
 
         #TODO woody put some know values to test conversion
         for point in pointlist :
             cp = self.aaf_file.create.ControlPoint()
             cp["EditHint"].value = "Proportional"
-            cp.value = point["properties"]["gain"]
+            cp.value = aaf2.rational.AAFRational(f"{linear_audio_map(point['properties']['gain'])}/{int(2^29)}")
+            # TODO verify if aaf2.rational.AAFRational is needed for cp.time
             cp.time = f"{point['position']}/{otio_clip.visible_range().duration.value}"
             points.append(cp)
 
         varying_value["PointList"].extend(points)
 
-        # TODO CLEAN
         # We must not take data from metadata previously generated in AAF to OTIO conversion
         # as we can not guaranty AAF will alwalways be the origin timeline format
         # We definitly need do be more agnostic.
