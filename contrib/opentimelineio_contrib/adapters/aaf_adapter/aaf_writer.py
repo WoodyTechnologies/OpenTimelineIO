@@ -347,6 +347,10 @@ class _TrackTranscriber:
     def _transition_parameters(self):
         pass
 
+    @abc.abstractmethod
+    def _effect_parameters(self):
+        pass
+
     def aaf_filler(self, otio_gap):
         """Convert an otio Gap into an aaf Filler"""
         length = int(otio_gap.visible_range().duration.value)
@@ -379,7 +383,90 @@ class _TrackTranscriber:
         compmob_clip.mob = mastermob
         compmob_clip.slot = mastermob_slot
         compmob_clip.slot_id = mastermob_slot.slot_id
-        return compmob_clip
+
+        if otio_clip.effects.len == 0 :
+            return compmob_clip
+
+        if otio_clip.effects.len == 1 :
+            return self.aaf_effect(otio_clip.effects[0], otio_clip, compmob_clip)
+
+        if otio_clip.effects.len > 1:
+            # TODO self.aaf_nestedeffect
+            effects = []
+            for otio_effect in otio_clip.effects :
+                effects.append(self.aaf_effect(otio_effect, otio_clip))
+            return compmob_clip
+    
+    def aaf_effect(self, otio_effect, otio_clip, compmob_clip):
+        """Convert an otio Effect into aaf Effect"""
+        if (otio_effect.effect_name !=
+                "AudioLevel"):
+            print(
+                "Unsupported effect type: {}".format(
+                    otio_effect.effect_name))
+            return None
+
+        effect_params, varying_value = self._effect_parameters()
+        interpolation_def = self.aaf_file.create.InterpolationDef(
+            aaf2.misc.LinearInterp, "LinearInterp", "Linear keyframe interpolation")
+        self.aaf_file.dictionary.register_def(interpolation_def)
+        varying_value["Interpolation"].value = (
+            self.aaf_file.dictionary.lookup_interperlationdef("LinearInterp"))
+        
+        pointlist = otio_effect.metadata["keyframes"]
+
+        points = []
+
+        #TODO woody put some know values to test conversion
+        for point in pointlist :
+            cp = self.aaf_file.create.ControlPoint()
+            cp["EditHint"].value = "Proportional"
+            cp.value = point["properties"]["gain"]
+            cp.time = f"{point['position']}/{otio_clip.visible_range().duration.value}"
+            points.append(cp)
+
+        varying_value["PointList"].extend(points)
+
+        # TODO CLEAN
+        # We must not take data from metadata previously generated in AAF to OTIO conversion
+        # as we can not guaranty AAF will alwalways be the origin timeline format
+        # We definitly need do be more agnostic.
+        op_group_metadata = ""
+        effect_id = "9d2ea894-0968-11d3-8a38-0050040ef7d2"
+        is_time_warp = False
+        by_pass = int(0)
+        number_inputs = int(1)
+        operation_category = "0d010102-0101-0100-060e-2b3404010101"
+        data_def_name = "Sound"
+        data_def = self.aaf_file.dictionary.lookup_datadef(str(data_def_name))
+        description = ""
+        op_def_name = "Audio Gain"
+        
+        # Create OperationDefinition
+        op_def = self.aaf_file.create.OperationDef(uuid.UUID(effect_id), op_def_name)
+        self.aaf_file.dictionary.register_def(op_def)
+        op_def.media_kind = self.media_kind
+        datadef = self.aaf_file.dictionary.lookup_datadef(self.media_kind)
+        op_def["IsTimeWarp"].value = is_time_warp
+        op_def["Bypass"].value = by_pass
+        op_def["NumberInputs"].value = number_inputs
+        op_def["OperationCategory"].value = str(operation_category)
+        op_def["ParametersDefined"].extend(effect_params)
+        op_def["DataDefinition"].value = data_def
+        op_def["Description"].value = str(description)
+
+        # Create OperationGroup
+        length = int(otio_clip.duration().value)
+        operation_group = self.aaf_file.create.OperationGroup(op_def, length)
+        operation_group["DataDefinition"].value = datadef
+        operation_group["Parameters"].append(varying_value)
+        operation_group["Segment"].append(compmob_clip)
+
+        # Create Effect
+        effect = self.aaf_file.create.Effect(self.media_kind)
+        effect["OperationGroup"].value = operation_group
+        effect["DataDefinition"].value = datadef
+        return effect
 
     def aaf_transition(self, otio_transition):
         """Convert an otio Transition into an aaf Transition"""
