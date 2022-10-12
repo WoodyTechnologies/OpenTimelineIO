@@ -13,6 +13,7 @@ import opentimelineio as otio
 import os
 import copy
 import re
+import math
 
 
 AAF_PARAMETERDEF_PAN = aaf2.auid.AUID("e4962322-2267-11d3-8a4c-0050040ef7d2")
@@ -417,30 +418,18 @@ class _TrackTranscriber:
 
         points = []
         
-        def linear_audio_map(value):
-            if value == "MinusInfinity":
-                return 2^29
-            if value == 4 :
+        def dB_to_linear_dividende(dBvalue):
+            if dBvalue == "MinusInfinity":
                 return 0
-            # dbVu min max
-            dbMax = 4
-            dbMin = -100
-            dbSpan = dbMax - dbMin
-            rightMax = 2^29
-            rightMin = 0
-            rightSpan = rightMax - rightMin
-
-            # Convert the left range into a 0-1 range (float)
-            valueScaled = float(value - dbMin) / float(dbSpan)
-
             # Convert the 0-1 range into a value in the right range.
-            return (valueScaled * rightMax) // 1
+            level = 10^(dBvalue/20)
 
-        #TODO woody put some know values to test conversion
+            return (level * 2^29) // 1
+
         for point in pointlist :
             cp = self.aaf_file.create.ControlPoint()
             cp["EditHint"].value = "Proportional"
-            cp.value = aaf2.rational.AAFRational(f"{linear_audio_map(point['properties']['gain'])}/{int(2^29)}")
+            cp.value = aaf2.rational.AAFRational(f"{dB_to_linear_dividende(point['properties']['gain'])}/{int(2^29)}")
             # TODO verify if aaf2.rational.AAFRational is needed for cp.time
             cp.time = f"{point['position']}/{otio_clip.visible_range().duration.value}"
             points.append(cp)
