@@ -6,7 +6,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src
     ${PYTHON_INCLUDE_DIRS})
 
 list(APPEND examples conform)
-list(APPEND examples flatten_video_tracks)
 list(APPEND examples summarize_timing)
 list(APPEND examples io_perf_test)
 list(APPEND examples upgrade_downgrade_example)
