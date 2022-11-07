@@ -385,13 +385,13 @@ class _TrackTranscriber:
         compmob_clip.slot = mastermob_slot
         compmob_clip.slot_id = mastermob_slot.slot_id
 
-        if otio_clip.effects.len == 0 :
+        if len(otio_clip.effects) == 0 :
             return compmob_clip
 
-        if otio_clip.effects.len == 1 :
+        if len(otio_clip.effects) == 1 :
             return self.aaf_effect(otio_clip.effects[0], otio_clip, compmob_clip)
 
-        if otio_clip.effects.len > 1:
+        if len(otio_clip.effects) > 1:
             # TODO self.aaf_nestedeffect
             effects = []
             for otio_effect in otio_clip.effects :
@@ -407,10 +407,12 @@ class _TrackTranscriber:
                     otio_effect.effect_name))
             return None
 
-        effect_params, varying_value = self._effect_parameters()
+        # TODO Replace values by hard coded values
+        effect_params, varying_value = self._transition_parameters()
         interpolation_def = self.aaf_file.create.InterpolationDef(
             aaf2.misc.LinearInterp, "LinearInterp", "Linear keyframe interpolation")
         self.aaf_file.dictionary.register_def(interpolation_def)
+
         varying_value["Interpolation"].value = (
             self.aaf_file.dictionary.lookup_interperlationdef("LinearInterp"))
         
@@ -422,16 +424,16 @@ class _TrackTranscriber:
             if dBvalue == "MinusInfinity":
                 return 0
             # Convert the 0-1 range into a value in the right range.
-            level = 10^(dBvalue/20)
+            level = 10**(dBvalue/20)
 
-            return (level * 2^29) // 1
+            return (level * 2**29) // 1
 
         for point in pointlist :
             cp = self.aaf_file.create.ControlPoint()
             cp["EditHint"].value = "Proportional"
-            cp.value = aaf2.rational.AAFRational(f"{dB_to_linear_dividende(point['properties']['gain'])}/{int(2^29)}")
+            cp.value = aaf2.rational.AAFRational(f"{int(dB_to_linear_dividende(point['properties']['gain']))}/{int(2^29)}")
             # TODO verify if aaf2.rational.AAFRational is needed for cp.time
-            cp.time = f"{point['position']}/{otio_clip.visible_range().duration.value}"
+            cp.time = f"{int(point['position'])}/{int(otio_clip.visible_range().duration.value)}"
             points.append(cp)
 
         varying_value["PointList"].extend(points)
