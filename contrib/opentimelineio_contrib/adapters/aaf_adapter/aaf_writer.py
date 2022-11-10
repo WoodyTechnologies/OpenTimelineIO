@@ -470,13 +470,13 @@ class _TrackTranscriber:
         operation_group = self.aaf_file.create.OperationGroup(op_def, length)
         operation_group["DataDefinition"].value = datadef
         operation_group["Parameters"].append(varying_value)
-        operation_group["Segment"].append(compmob_clip)
+        #operation_group.segments.append(compmob_clip)
 
         # Create Effect
-        effect = self.aaf_file.create.Effect(self.media_kind)
-        effect["OperationGroup"].value = operation_group
-        effect["DataDefinition"].value = datadef
-        return effect
+        # effect = self.aaf_file.create.Effect(self.media_kind)
+        # effect["OperationGroup"].value = operation_group
+        # effect["DataDefinition"].value = datadef
+        return operation_group
 
     def aaf_transition(self, otio_transition):
         """Convert an otio Transition into an aaf Transition"""
