@@ -431,7 +431,7 @@ class _TrackTranscriber:
         for point in pointlist :
             cp = self.aaf_file.create.ControlPoint()
             cp["EditHint"].value = "Proportional"
-            cp.value = aaf2.rational.AAFRational(f"{int(dB_to_linear_dividende(point['properties']['gain']))}/{int(2^29)}")
+            cp.value = aaf2.rational.AAFRational(f"{int(dB_to_linear_dividende(point['properties']['gain']))}/{int(2**29)}")
             # TODO verify if aaf2.rational.AAFRational is needed for cp.time
             cp.time = f"{int(point['position'])}/{int(otio_clip.visible_range().duration.value)}"
             points.append(cp)
