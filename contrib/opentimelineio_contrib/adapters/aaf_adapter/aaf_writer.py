@@ -13,7 +13,6 @@ import opentimelineio as otio
 import os
 import copy
 import re
-import math
 
 
 AAF_PARAMETERDEF_PAN = aaf2.auid.AUID("e4962322-2267-11d3-8a4c-0050040ef7d2")
