@@ -55,6 +55,7 @@ TypeRegistry::TypeRegistry()
         },
         "UnknownSchema");
 
+    register_type<AudioLevel>();
     register_type<Clip>();
     register_type<Composable>();
     register_type<Composition>();
